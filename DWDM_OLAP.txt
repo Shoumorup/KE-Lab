@@ -1,0 +1,255 @@
+CREATE TABLE DATA
+(
+  STU_NAME VARCHAR(20),
+  SUB1 NUMBER(5),
+  SUB2 NUMBER(5),
+  SEX VARCHAR(5),
+  DEPT VARCHAR(10)
+);
+
+
+INSERT INTO DATA(STU_NAME,SUB1,SUB2,SEX,DEPT) VALUES('&STU_NAME',&SUB1,&SUB2,'&SEX','&DEPT');
+
+1. ROLLUP:
+SELECT DEPT,SEX,SUM(SUB1),SUM(SUB2)
+FROM DATA
+GROUP BY ROLLUP(DEPT,SEX);
+
+OUTPUT:
+DEPT       SEX        SUM(SUB1)              SUM(SUB2)              
+---------- ---------- ---------------------- ---------------------- 
+CSE        F          154                    101                    
+CSE        M          67                     45                     
+CSE                   221                    146                    
+CHEM       F          45                     12                     
+CHEM       M          99                     121                    
+CHEM                  144                    133                    
+                      365                    279     
+2. CUBE:
+SELECT DEPT,SEX,SUM(SUB1),SUM(SUB2)
+FROM DATA
+GROUP BY CUBE(DEPT,SEX);
+
+OUTPUT:
+DEPT       SEX        SUM(SUB1)              SUM(SUB2)              
+---------- ---------- ---------------------- ---------------------- 
+                      365                    279                    
+           F          199                    113                    
+           M          166                    166                    
+CSE                   221                    146                    
+CSE        F          154                    101                    
+CSE        M          67                     45                     
+CHEM                  144                    133                    
+CHEM       F          45                     12                     
+CHEM       M          99                     121                    
+
+9 rows selected
+
+
+3.PARTIAL ROLLUP:
+SELECT STU_NAME,DEPT,SEX,SUM(SUB1),SUM(SUB2)
+FROM DATA
+GROUP BY STU_NAME, ROLLUP(DEPT,SEX);
+
+OUTPUT:
+STU_NAME             DEPT       SEX        SUM(SUB1)              SUM(SUB2)              
+-------------------- ---------- ---------- ---------------------- ---------------------- 
+AAA                  CHEM       M          23                     34                     
+AAA                  CHEM                  23                     34                     
+AAA                                        23                     34                     
+BBB                  CHEM       F          45                     12                     
+BBB                  CHEM                  45                     12                     
+BBB                                        45                     12                     
+CCC                  CSE        M          67                     45                     
+CCC                  CSE                   67                     45                     
+CCC                                        67                     45                     
+DDD                  CSE        F          98                     12                     
+DDD                  CSE                   98                     12                     
+DDD                                        98                     12                     
+EEE                  CHEM       M          76                     87                     
+EEE                  CHEM                  76                     87                     
+EEE                                        76                     87                     
+FFF                  CSE        F          56                     89                     
+FFF                  CSE                   56                     89                     
+FFF                                        56                     89                     
+
+18 rows selected
+
+PARTIAL CUBE:
+SELECT stu_name,DEPT,SEX,SUM(SUB1),SUM(SUB2)
+FROM DATA
+GROUP BY STU_NAME,CUBE(DEPT,SEX);
+
+OUTPUT:
+STU_NAME             DEPT       SEX        SUM(SUB1)              SUM(SUB2)              
+-------------------- ---------- ---------- ---------------------- ---------------------- 
+AAA                                        23                     34                     
+AAA                             M          23                     34                     
+AAA                  CHEM                  23                     34                     
+AAA                  CHEM       M          23                     34                     
+BBB                                        45                     12                     
+BBB                             F          45                     12                     
+BBB                  CHEM                  45                     12                     
+BBB                  CHEM       F          45                     12                     
+CCC                                        67                     45                     
+CCC                             M          67                     45                     
+CCC                  CSE                   67                     45                     
+CCC                  CSE        M          67                     45                     
+DDD                                        98                     12                     
+DDD                             F          98                     12                     
+DDD                  CSE                   98                     12                     
+DDD                  CSE        F          98                     12                     
+EEE                                        76                     87                     
+EEE                             M          76                     87                     
+EEE                  CHEM                  76                     87                     
+EEE                  CHEM       M          76                     87                     
+FFF                                        56                     89                     
+FFF                             F          56                     89                     
+FFF                  CSE                   56                     89                     
+FFF                  CSE        F          56                     89                     
+
+24 rows selected
+
+
+
+4.GROUPING SETS:
+SELECT DEPT,SEX,SUM(SUB1),SUM(SUB2)
+FROM DATA
+GROUP BY GROUPING SETS((DEPT,SEX),(SEX));
+
+OUTPUT:
+DEPT       SEX        SUM(SUB1)              SUM(SUB2)              
+---------- ---------- ---------------------- ---------------------- 
+CSE        F          154                    101                    
+CHEM       F          45                     12                     
+           F          199                    113                    
+CSE        M          67                     45                     
+CHEM       M          99                     121                    
+           M          166                    166                    
+
+6 rows selected
+
+5.GROUPING SETS WITH ROLLUP:
+SELECT DEPT,SEX,PASSED,SUM(SUB1),SUM(SUB2)
+FROM DATA
+GROUP BY GROUPING SETS((DEPT,SEX),ROLLUP(SEX,PASSED));
+
+OUTPUT:
+DEPT       SEX        PASSED     SUM(SUB1)              SUM(SUB2)              
+---------- ---------- ---------- ---------------------- ---------------------- 
+CHEM       F                     45                     12                     
+CSE        F                     154                    101                    
+CSE        M                     67                     45                     
+CHEM       M                     99                     121                    
+           F          N          45                     12                     
+           F          Y          154                    101                    
+           F                     199                    113                    
+           M          N          143                    132                    
+           M          Y          23                     34                     
+           M                     166                    166                    
+                                 365                    279                    
+
+11 rows selected
+
+7.GROUPING_ID:
+SELECT DEPT,SEX,SUM(SUB1),SUM(SUB2),GROUPING_ID(SEX,DEPT)
+FROM DATA
+GROUP BY ROLLUP(DEPT,SEX);
+
+OUTPUT:
+DEPT       SEX        SUM(SUB1)              SUM(SUB2)              GROUPING_ID(SEX,DEPT)  
+---------- ---------- ---------------------- ---------------------- ---------------------- 
+CSE        F          154                    101                    0                      
+CSE        M          67                     45                     0                      
+CSE                   221                    146                    2                      
+CHEM       F          45                     12                     0                      
+CHEM       M          99                     121                    0                      
+CHEM                  144                    133                    2                      
+                      365                    279                    3                      
+
+7 rows selected
+
+SELECT DEPT,SEX,SUM(SUB1),SUM(SUB2),GROUPING_ID(DEPT,SEX)
+FROM DATA
+GROUP BY ROLLUP(DEPT,SEX);
+
+OUTPUT:
+DEPT       SEX        SUM(SUB1)              SUM(SUB2)              GROUPING_ID(DEPT,SEX)  
+---------- ---------- ---------------------- ---------------------- ---------------------- 
+CSE        F          154                    101                    0                      
+CSE        M          67                     45                     0                      
+CSE                   221                    146                    1                      
+CHEM       F          45                     12                     0                      
+CHEM       M          99                     121                    0                      
+CHEM                  144                    133                    1                      
+                      365                    279                    3                      
+
+7 rows selected
+
+8.
+SELECT DEPT,SEX,SUM(SUB1),SUM(SUB2),GROUPING_ID(DEPT,SEX)
+FROM DATA
+GROUP BY CUBE(DEPT,SEX);
+
+OUTPUT:
+DEPT       SEX        SUM(SUB1)              SUM(SUB2)              GROUPING_ID(DEPT,SEX)  
+---------- ---------- ---------------------- ---------------------- ---------------------- 
+                      365                    279                    3                      
+           F          199                    113                    2                      
+           M          166                    166                    2                      
+CSE                   221                    146                    1                      
+CSE        F          154                    101                    0                      
+CSE        M          67                     45                     0                      
+CHEM                  144                    133                    1                      
+CHEM       F          45                     12                     0                      
+CHEM       M          99                     121                    0                      
+
+9 rows selected
+
+9.COMPOSITE ATTRIBUTES:
+SELECT DEPT,SEX,PASSED,SUM(SUB1),SUM(SUB2)
+FROM DATA
+GROUP BY ROLLUP((DEPT,SEX),PASSED);
+
+OUTPUT:
+DEPT       SEX        PASSED     SUM(SUB1)              SUM(SUB2)              
+---------- ---------- ---------- ---------------------- ---------------------- 
+CSE        F          Y          154                    101                    
+CSE        F                     154                    101                    
+CSE        M          N          67                     45                     
+CSE        M                     67                     45                     
+CHEM       F          N          45                     12                     
+CHEM       F                     45                     12                     
+CHEM       M          N          76                     87                     
+CHEM       M          Y          23                     34                     
+CHEM       M                     99                     121                    
+                                 365                    279                    
+
+10 rows selected
+
+10.CONCATENATION OF GROUPING ATTRIBUTES:
+SELECT DEPT,SEX,PASSED,YEAR,SUM(SUB1),SUM(SUB2)
+FROM DATA
+GROUP BY GROUPING SETS(DEPT,SEX),GROUPING SETS(PASSED,YEAR);
+
+OUTPUT:
+DEPT       SEX        PASSED     YEAR                   SUM(SUB1)              SUM(SUB2)              
+---------- ---------- ---------- ---------------------- ---------------------- ---------------------- 
+CSE                   N                                 67                     45                     
+CSE                   Y                                 154                    101                    
+CHEM                  Y                                 23                     34                     
+CHEM                  N                                 121                    99                     
+           M          Y                                 23                     34                     
+           M          N                                 143                    132                    
+           F          N                                 45                     12                     
+           F          Y                                 154                    101                    
+CHEM                             2015                   23                     34                     
+CSE                              2015                   165                    57                     
+CHEM                             2016                   121                    99                     
+CSE                              2016                   56                     89                     
+           M                     2016                   76                     87                     
+           F                     2015                   98                     12                     
+           F                     2016                   101                    101                    
+           M                     2015                   90                     79                     
+
+16 rows selected
